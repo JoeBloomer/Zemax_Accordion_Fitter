@@ -4,7 +4,7 @@ Created on Fri Nov 24 15:03:00 2023
 
 @author: Joe Bloomer
 """
-
+#Import modules
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -14,14 +14,17 @@ from numpy.fft import fft, fftfreq, fftshift
 from scipy.optimize import curve_fit
 import re
 
+# Define Yb polarizability at 1064 nm in SI units
 yb_pol_1064 = 159.56539113196172 * (4*np.pi * const.epsilon_0) * const.physical_constants['Bohr radius'][0]**3
 
 
-def yb_inten2pot(I):
-    return -1/(2*const.epsilon_0*const.c) * yb_pol_1064 * I
+def yb_inten2pot(I,yb_pol):
+    # Function converts an intensity in SI units to a dipole potential in SI units for a certain polarizability
+    return -1/(2*const.epsilon_0*const.c) * yb_pol * I
 
 
 def quadratic(x,x0,w,U_0):
+    # Function for fitting a quadratic to an approximate harmonic potential
     return -U_0*(1 - 2*((x-x0)/w)**2)
 
 
@@ -140,16 +143,20 @@ def load_files_from_specific_folders(root_folder, folder_format,m_yb = const.m_p
             potentials_harmonic_new = potentials[indices_new]
             
 
+            Min_pot_y_new = y_harmonic_new[np.argmin(potentials_harmonic_new)]
+            Min_pot_new = potentials_harmonic_new[np.argmin(potentials_harmonic_new)]
+
             plt.plot(y*1e6,potentials/const.Boltzmann*1e6)
             
             
             if Ignore_fitting_error == True:
                 try:
-                    popt, covt = curve_fit(quadratic, y_harmonic_new, potentials_harmonic_new, p0 = [Min_pot_y,spacings[i],Min_pot])
+                    popt, covt = curve_fit(quadratic, y_harmonic_new, potentials_harmonic_new, p0 = [Min_pot_y_new,spacings[i],Min_pot_new])
                 except:
                     pass
             else:
-                popt, covt = curve_fit(quadratic, y_harmonic_new, potentials_harmonic_new, p0 = [Min_pot_y,spacings[i],Min_pot])
+                popt, covt = curve_fit(quadratic, y_harmonic_new, potentials_harmonic_new, p0 = [Min_pot_y_new,spacings[i],Min_pot_new])
+                
                 
                 
                 
